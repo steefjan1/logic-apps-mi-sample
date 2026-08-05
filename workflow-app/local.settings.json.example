@@ -10,6 +10,6 @@
     "WORKFLOWS_MANAGEMENT_BASE_URI": "https://management.azure.com/",
     "DATA_STORAGE_ACCOUNT_NAME": "<the data storage account azd provisioned>",
     "azureblob_connectionRuntimeUrl": "<filled in after you create the local connection>",
-    "WORKFLOWS_AUTHENTICATION_METHOD": ""
+    "WORKFLOWS_AUTHENTICATION_METHOD": "managedServiceIdentity"
   }
 }

@@ -189,3 +189,13 @@ partial run before assuming the template is wrong.
   end-to-end at time of writing — if you still see a token error after
   this, the access policy or role assignment propagation is the next
   thing to check, not the connection resource itself.
+- **`WORKFLOWS_AUTHENTICATION_METHOD` app setting was missing from the
+  deployed app entirely.** The first several versions of this sample only
+  referenced it in local dev settings, with an unconfirmed placeholder
+  value. The confirmed value, straight from Wagner Silveira's post, is
+  `managedServiceIdentity` — and it turned out to matter on the deployed
+  app too, not just for local run/debug: without it, the connection,
+  access policy, and RBAC can all be independently correct and the
+  runtime will still never attach a token when calling the connector.
+  This was the actual fix for the persistent `Key 'token' not found in
+  connection profile` error that survived every other change above.

@@ -120,6 +120,7 @@ resource logicApp 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'WORKFLOWS_LOCATION_NAME', value: location }
         { name: 'WORKFLOWS_MANAGEMENT_BASE_URI', value: environment().resourceManager }
         { name: 'DATA_STORAGE_ACCOUNT_NAME', value: dataStorage.name }
+        { name: 'WORKFLOWS_AUTHENTICATION_METHOD', value: 'managedServiceIdentity' }
         {
           name: 'azureblob_connectionRuntimeUrl'
           value: reference(azureBlobConnection.id, '2018-07-01-preview', 'Full').properties.connectionRuntimeUrl
