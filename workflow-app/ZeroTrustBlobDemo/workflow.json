@@ -1,0 +1,41 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "Recurrence": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Hour",
+          "interval": 1
+        }
+      }
+    },
+    "actions": {
+      "List_blobs": {
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "referenceName": "azureblob"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(appsetting('DATA_STORAGE_ACCOUNT_NAME')))}/foldersV2/@{encodeURIComponent(encodeURIComponent('/zero-trust-demo'))}"
+        },
+        "runAfter": {}
+      },
+      "Compose_summary": {
+        "type": "Compose",
+        "inputs": "Blob listing retrieved using Managed Identity end to end — no connection string, local or deployed.",
+        "runAfter": {
+          "List_blobs": [
+            "Succeeded"
+          ]
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "kind": "Stateful"
+}

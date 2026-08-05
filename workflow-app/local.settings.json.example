@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "APP_KIND": "workflowapp",
+    "WORKFLOWS_SUBSCRIPTION_ID": "<your-subscription-id>",
+    "WORKFLOWS_RESOURCE_GROUP_NAME": "<your-resource-group>",
+    "WORKFLOWS_LOCATION_NAME": "<your-region, e.g. westeurope>",
+    "WORKFLOWS_MANAGEMENT_BASE_URI": "https://management.azure.com/",
+    "DATA_STORAGE_ACCOUNT_NAME": "<the data storage account azd provisioned>",
+    "azureblob_connectionRuntimeUrl": "<filled in after you create the local connection>",
+    "WORKFLOWS_AUTHENTICATION_METHOD": ""
+  }
+}

@@ -1,0 +1,6 @@
+workflow-app/local.settings.json
+bin/
+obj/
+.vscode/
+*.user
+.azure/
