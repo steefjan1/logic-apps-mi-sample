@@ -146,6 +146,14 @@ the next person.
 
 ### Fixed since the first version of this sample
 
+- `infra/resources.bicep` — the API connection was missing `kind: 'V2'`.
+  Without it, `connectionRuntimeUrl` isn't returned by the Microsoft.Web/connections
+  API at all — not a Bicep bug, an API behavior tied to that `kind` value
+  (long-standing, still-open upstream issue:
+  [Azure/bicep#3494](https://github.com/Azure/bicep/issues/3494)). Bicep's
+  linter doesn't know the `kind` property exists for this resource type
+  (its schema is incomplete) and will warn accordingly — that warning is
+  expected and doesn't block deployment.
 - `infra/resources.bicep` — the API connection access policy's `name` was
   set to `logicApp.identity.principalId`. Bicep rejects that: a resource
   name has to be computable before deployment starts, and a

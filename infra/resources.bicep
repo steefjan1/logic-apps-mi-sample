@@ -70,6 +70,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-01-01' = {
 // ---------------------------------------------------------------------------
 resource azureBlobConnection 'Microsoft.Web/connections@2016-06-01' = {
   name: 'azureblob'
+  kind: 'V2'
   location: location
   tags: tags
   properties: {
