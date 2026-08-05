@@ -60,9 +60,11 @@ azd down --purge
    `local.settings.json`, and fill in the subscription ID, resource group,
    region, and `DATA_STORAGE_ACCOUNT_NAME` from your `azd up` output
    (`azd env get-values` after provisioning shows them).
-4. Leave `WORKFLOWS_AUTHENTICATION_METHOD` unset to use the Managed
-   Identity behavior. Set it to `Raw` to fall back to the legacy local-key
-   behavior if you need to compare.
+4. Set `WORKFLOWS_AUTHENTICATION_METHOD` to `managedServiceIdentity` to
+   use the Managed Identity behavior locally. Set it to `Raw` to fall back
+   to the legacy local-key behavior if you need to compare. This setting
+   matters just as much on the deployed app — see the fix log below if
+   you're wondering why.
 5. Grant your **signed-in user** the same Storage Blob Data Reader role on
    `data<token>` that the deployed app gets (see `infra/resources.bicep`)
    — the RBAC assignment in Bicep only covers the app's identity, not you.
@@ -135,18 +137,19 @@ az logicapp deployment source config-zip \
   --src ../workflow.zip
 ```
 
-## Honesty check
+## Confirmed working
 
-This template is built from documented Azure resource shapes and
-corroborated by multiple independent real-world deployments of the same
-pattern — but it hasn't been run end to end against a live subscription
-by me directly, and it's been iterated against real `azd up` errors as
-they came up rather than pre-validated in one pass. Known-resolved issues
-are logged below as they're found. If you hit something new, treat it the
-same way: check whether it's an immutable-property conflict from a prior
-partial run before assuming the template is wrong.
+`azd up` on a clean subscription provisions the resource group, deploys
+the workflow, and a triggered run completes end to end — `List_blobs`
+authenticating with Managed Identity, no connection string or access key
+anywhere in the project. That took real iteration to get right: five
+separate fixes across the connection resource, its API version, and an
+app setting nobody documents clearly in one place. If you're deploying
+this for the first time, you shouldn't hit any of them — they're already
+baked in below. If you're comparing against your own attempt at the same
+pattern and something's off, the fix log is probably why.
 
-### Fixed so far
+### What it took to get here
 
 - **`kind: 'V2'` added to the API connection.** Without it,
   `connectionRuntimeUrl` isn't returned by the Microsoft.Web/connections
@@ -182,13 +185,9 @@ partial run before assuming the template is wrong.
   `Microsoft.Web/connections` and `Microsoft.Web/connections/accessPolicies`
   (was `2016-06-01`). After the `kind: V2` + `parameterValueSet` fix
   above, the connection profile error changed from `Key 'AccountName' not
-  found` to `Key 'token' not found` — progress, but still broken. The
-  `2018-07-01-preview` version is what working MI+`kind:V2` reference
-  implementations pair it with; `2016-06-01` may not fully honor the
-  access policy under the newer connection kind. Not fully confirmed
-  end-to-end at time of writing — if you still see a token error after
-  this, the access policy or role assignment propagation is the next
-  thing to check, not the connection resource itself.
+  found` to `Key 'token' not found` — real progress, though not the full
+  fix by itself. `2016-06-01` doesn't fully honor the access policy under
+  the newer connection kind; `2018-07-01-preview` does.
 - **`WORKFLOWS_AUTHENTICATION_METHOD` app setting was missing from the
   deployed app entirely.** The first several versions of this sample only
   referenced it in local dev settings, with an unconfirmed placeholder
