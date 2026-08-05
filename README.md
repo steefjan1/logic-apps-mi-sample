@@ -82,6 +82,19 @@ else. A Managed Identity with too broad a role — Contributor on the
 resource group, say, instead of Storage Blob Data Reader on one storage
 account — will authenticate just fine and still be the wrong outcome.
 
+## `dotnet` deployed, `node` locally — that's expected
+
+The deployed Logic App's `FUNCTIONS_WORKER_RUNTIME` app setting is set to
+`dotnet` in `resources.bicep`. That's not a mismatch with local dev — it's
+current Microsoft guidance: Azure now normalizes this setting to `dotnet`
+for all deployed Standard logic apps regardless of what you set it to.
+`local.settings.json.example`, by contrast, stays on `node`, which is
+still what the VS Code extension defaults to for local run/debug. If a
+workflow action that needs the JS worker (like Execute JavaScript Code)
+fails locally, that split is usually why — this sample's own workflow
+doesn't use one, so it shouldn't bite you here, but it's worth knowing
+before you extend it.
+
 ## Deploying without azd
 
 If you'd rather provision manually or already have the resources:

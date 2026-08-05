@@ -107,7 +107,7 @@ resource logicApp 'Microsoft.Web/sites@2023-12-01' = {
         }
         { name: 'WEBSITE_CONTENTSHARE', value: toLower('logic-${resourceToken}') }
         { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
-        { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'node' }
+        { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'dotnet' }
         { name: 'WEBSITE_NODE_DEFAULT_VERSION', value: '~20' }
         { name: 'APP_KIND', value: 'workflowApp' }
         { name: 'WORKFLOWS_SUBSCRIPTION_ID', value: subscription().subscriptionId }
