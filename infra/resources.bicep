@@ -68,7 +68,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-01-01' = {
 // Managed connector connection — Azure Blob Storage, Managed Identity auth.
 // No connection string, no client secret.
 // ---------------------------------------------------------------------------
-resource azureBlobConnection 'Microsoft.Web/connections@2016-06-01' = {
+resource azureBlobConnection 'Microsoft.Web/connections@2018-07-01-preview' = {
   name: 'azureblob'
   kind: 'V2'
   location: location
@@ -122,7 +122,7 @@ resource logicApp 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'DATA_STORAGE_ACCOUNT_NAME', value: dataStorage.name }
         {
           name: 'azureblob_connectionRuntimeUrl'
-          value: reference(azureBlobConnection.id, '2016-06-01', 'Full').properties.connectionRuntimeUrl
+          value: reference(azureBlobConnection.id, '2018-07-01-preview', 'Full').properties.connectionRuntimeUrl
         }
       ]
     }
@@ -131,7 +131,7 @@ resource logicApp 'Microsoft.Web/sites@2023-12-01' = {
 
 // Trust the Logic App's managed identity on the connection's access policy —
 // this is the step that removes the need for a local connection key.
-resource connectionAccessPolicy 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
+resource connectionAccessPolicy 'Microsoft.Web/connections/accessPolicies@2018-07-01-preview' = {
   parent: azureBlobConnection
   name: logicApp.name
   properties: {

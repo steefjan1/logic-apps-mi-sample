@@ -178,3 +178,14 @@ partial run before assuming the template is wrong.
   in `connections.json` correctly says `ManagedServiceIdentity`. The
   connection resource and the workflow's reference to it are two separate
   places this has to be declared correctly.
+- **API version bumped to `2018-07-01-preview`** for both
+  `Microsoft.Web/connections` and `Microsoft.Web/connections/accessPolicies`
+  (was `2016-06-01`). After the `kind: V2` + `parameterValueSet` fix
+  above, the connection profile error changed from `Key 'AccountName' not
+  found` to `Key 'token' not found` — progress, but still broken. The
+  `2018-07-01-preview` version is what working MI+`kind:V2` reference
+  implementations pair it with; `2016-06-01` may not fully honor the
+  access policy under the newer connection kind. Not fully confirmed
+  end-to-end at time of writing — if you still see a token error after
+  this, the access policy or role assignment propagation is the next
+  thing to check, not the connection resource itself.
