@@ -1,0 +1,6 @@
+{
+  "name": "logic-apps-mi-sample-workflows",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Logic Apps Standard workflow project — declarative only, no npm dependencies"
+}

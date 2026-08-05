@@ -143,3 +143,17 @@ errors out:
 
 If you hit and fix one of these, it's worth a note back in this README for
 the next person.
+
+### Fixed since the first version of this sample
+
+- `infra/resources.bicep` — the API connection access policy's `name` was
+  set to `logicApp.identity.principalId`. Bicep rejects that: a resource
+  name has to be computable before deployment starts, and a
+  system-assigned identity's principal ID only exists once the identity
+  is actually created. Fixed to `name: logicApp.name`; the principal ID
+  still goes into `properties.principal.identity.objectId`, which is fine
+  at runtime.
+- `workflow-app/package.json` — added. `azd`'s `language: js` packaging
+  step runs `npm install` before zipping, which fails outright without a
+  `package.json` even when there's nothing to install.
+

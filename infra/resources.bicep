@@ -128,7 +128,7 @@ resource logicApp 'Microsoft.Web/sites@2023-12-01' = {
 // this is the step that removes the need for a local connection key.
 resource connectionAccessPolicy 'Microsoft.Web/connections/accessPolicies@2016-06-01' = {
   parent: azureBlobConnection
-  name: logicApp.identity.principalId
+  name: logicApp.name
   properties: {
     principal: {
       type: 'ActiveDirectory'
