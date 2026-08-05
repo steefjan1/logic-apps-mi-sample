@@ -22,7 +22,7 @@ connection string or access key anywhere in the project.
 | Storage account (`data<token>`) | The actual data the workflow reads — **kept separate on purpose** |
 | App Service Plan, WS1 (Workflow Standard) | Hosts the Logic App |
 | Logic App Standard (`logic-<token>`) | System-assigned managed identity, `kind: functionapp,workflowapp` |
-| API connection (`azureblob`) | Managed connector, `authentication.type: ManagedServiceIdentity` |
+| API connection (`azureblob`) | Managed connector, `kind: V2`, `authentication.type: ManagedServiceIdentity` |
 | Connection access policy | Trusts the Logic App's identity — no local key |
 | Role assignment | Storage Blob Data Reader, scoped to `data<token>` only — **not** the resource group, **not** the runtime storage account |
 
@@ -82,6 +82,24 @@ else. A Managed Identity with too broad a role — Contributor on the
 resource group, say, instead of Storage Blob Data Reader on one storage
 account — will authenticate just fine and still be the wrong outcome.
 
+## If you already ran `azd up` once before a fix landed
+
+The API connection's `kind` property is immutable once created. If an
+earlier attempt created it without `kind: 'V2'` (the default is `V1`),
+redeploying will fail with `ConnectionV2KindMismatch` instead of silently
+fixing itself. Delete just that resource and re-run:
+
+```bash
+az resource delete --resource-group rg-<your-env-name> --name azureblob --resource-type "Microsoft.Web/connections"
+azd up
+```
+
+Everything else already provisioned (storage accounts, plan) is left
+alone — only the connection gets recreated. The same approach applies
+generally: if a redeploy fails on an immutable-property mismatch for any
+resource, delete that one resource and re-run rather than tearing down
+the whole environment.
+
 ## `dotnet` deployed, `node` locally — that's expected
 
 The deployed Logic App's `FUNCTIONS_WORKER_RUNTIME` app setting is set to
@@ -119,49 +137,35 @@ az logicapp deployment source config-zip \
 
 ## Honesty check
 
-This template is built from documented Azure resource shapes (the
-`Microsoft.Web/sites` `kind: functionapp,workflowapp` pattern, the
-`azd`/`host: function` service model used in Microsoft's own Logic Apps
-Standard `azd` samples, and the API connection + access policy pattern from
-Microsoft's connector docs) — but it hasn't been run end to end against a
-live subscription. The pieces most likely to need a tweak if `azd up`
-errors out:
+This template is built from documented Azure resource shapes and
+corroborated by multiple independent real-world deployments of the same
+pattern — but it hasn't been run end to end against a live subscription
+by me directly, and it's been iterated against real `azd up` errors as
+they came up rather than pre-validated in one pass. Known-resolved issues
+are logged below as they're found. If you hit something new, treat it the
+same way: check whether it's an immutable-property conflict from a prior
+partial run before assuming the template is wrong.
 
-- **`azureblob_connectionRuntimeUrl`** — resolved via
-  `reference(..., 'Full').properties.connectionRuntimeUrl` in
-  `resources.bicep`, the standard workaround for a property Bicep doesn't
-  expose in its typed schema. If this fails to resolve at deploy time,
-  fetch it manually from the connection resource after a first deploy and
-  hardcode it temporarily to unblock yourself.
-- **Resource provider registration** — `Microsoft.Web/connections`
-  usually registers automatically the first time you create one, but if
-  the deployment fails on that resource, run
-  `az provider register --namespace Microsoft.Web` and retry.
-- **Region support for WS1** — not every region has Workflow Standard
-  capacity; if provisioning fails on the plan, try `westeurope`,
-  `eastus2`, or another major region.
+### Fixed so far
 
-If you hit and fix one of these, it's worth a note back in this README for
-the next person.
-
-### Fixed since the first version of this sample
-
-- `infra/resources.bicep` — the API connection was missing `kind: 'V2'`.
-  Without it, `connectionRuntimeUrl` isn't returned by the Microsoft.Web/connections
+- **`kind: 'V2'` added to the API connection.** Without it,
+  `connectionRuntimeUrl` isn't returned by the Microsoft.Web/connections
   API at all — not a Bicep bug, an API behavior tied to that `kind` value
   (long-standing, still-open upstream issue:
   [Azure/bicep#3494](https://github.com/Azure/bicep/issues/3494)). Bicep's
   linter doesn't know the `kind` property exists for this resource type
   (its schema is incomplete) and will warn accordingly — that warning is
   expected and doesn't block deployment.
-- `infra/resources.bicep` — the API connection access policy's `name` was
-  set to `logicApp.identity.principalId`. Bicep rejects that: a resource
-  name has to be computable before deployment starts, and a
-  system-assigned identity's principal ID only exists once the identity
-  is actually created. Fixed to `name: logicApp.name`; the principal ID
-  still goes into `properties.principal.identity.objectId`, which is fine
-  at runtime.
-- `workflow-app/package.json` — added. `azd`'s `language: js` packaging
+- **Access policy `name` fixed.** It was set to
+  `logicApp.identity.principalId`. Bicep rejects that: a resource name
+  has to be computable before deployment starts, and a system-assigned
+  identity's principal ID only exists once the identity is actually
+  created. Fixed to `name: logicApp.name`; the principal ID still goes
+  into `properties.principal.identity.objectId`, which is fine at
+  runtime.
+- **`workflow-app/package.json` added.** `azd`'s `language: js` packaging
   step runs `npm install` before zipping, which fails outright without a
   `package.json` even when there's nothing to install.
-
+- **`FUNCTIONS_WORKER_RUNTIME` set to `dotnet` for the deployed app.**
+  Current Microsoft guidance for deployed Standard logic apps; see the
+  `dotnet` vs `node` section above.
