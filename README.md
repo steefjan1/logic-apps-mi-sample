@@ -169,3 +169,12 @@ partial run before assuming the template is wrong.
 - **`FUNCTIONS_WORKER_RUNTIME` set to `dotnet` for the deployed app.**
   Current Microsoft guidance for deployed Standard logic apps; see the
   `dotnet` vs `node` section above.
+- **`parameterValueSet` added to the API connection.** Without declaring
+  `parameterValueSet: { name: 'managedIdentityAuth', values: {} }`, the
+  Azure Blob Storage connector doesn't know which auth profile the
+  connection is using and falls back to expecting the shared-key
+  parameter set — surfacing at runtime as `Key 'AccountName' not found in
+  connection profile`, even though the connection's `authentication.type`
+  in `connections.json` correctly says `ManagedServiceIdentity`. The
+  connection resource and the workflow's reference to it are two separate
+  places this has to be declared correctly.

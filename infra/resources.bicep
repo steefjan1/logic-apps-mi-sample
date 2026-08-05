@@ -78,6 +78,10 @@ resource azureBlobConnection 'Microsoft.Web/connections@2016-06-01' = {
     api: {
       id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'azureblob')
     }
+    parameterValueSet: {
+      name: 'managedIdentityAuth'
+      values: {}
+    }
   }
 }
 
